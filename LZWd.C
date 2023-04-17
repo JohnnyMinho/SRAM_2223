@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
 // Precisamos de uma função para dividir a informação lida do ficheiro de origem em blocos 
 // Precisamos de uma função para enviar a informação em blocos para o ficheiro final
 // Precisamos da função do algoritemo do LZWd em si
@@ -24,9 +26,8 @@ void mostrar_est(){ //Mostra as estatísticas
 
 }
 
-
-
 int main(int argc, char *argv[]) {
+    int fd;
     if(argc > 2){ //Existem argumentos para além da exc da app e o nome do ficheiro a comprimir, logo têmos de verificar que argumentos são usados, para já isto não vai fazer nada
         switch(argc){
             case 1:
@@ -44,8 +45,14 @@ int main(int argc, char *argv[]) {
         }
     }else{
         char file_content_block[basic_block_size];
-        
     }
+    fd = open(argv[1], O_RDONLY, 0666);
+    if(fd == -1){
+        printf("O caminho até ao ficheiro está errado ou o ficheiro não existe");
+        return 1;
+    }
+    
+
     //
     return 0;
 }
