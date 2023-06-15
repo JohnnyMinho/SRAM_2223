@@ -21,26 +21,29 @@
 // Quanto à otimização o melhor seria usar as funções mais simples do C.
 
 #define basic_block_size 65536
+#define num_filhos 256
 
 //Estruta de dados usado, trie.
 
 typedef struct trie_node trie_node;
 
+
 struct trie_node {
     int e_leaf;
-    char dados;
-    trie_node** filhos;
-    int num_filhos;
+    char *dados;
+    int indice;
+    trie_node* filhos[num_filhos];
 };
 
-trie_node* criar_node(char data, int n_filhos){
+trie_node* criar_node(char data){
     trie_node* novo_node = (trie_node*) calloc (1, sizeof(trie_node));
-    novo_node->filhos = (trie_node**) malloc(n_filhos * sizeof(trie_node*));
-    for (int i=0; i<n_filhos; i++){
+    //novo_node->filhos = (trie_node**) malloc(n_filhos * sizeof(trie_node*));
+    for (int i=0; i<num_filhos; i++){
         novo_node->filhos[i] = NULL;
-    novo_node->num_filhos = 0;
+    //novo_node->num_filhos = 0;
     novo_node->e_leaf = 0;
-}
+    }
+    return novo_node;
 }
 
 unsigned char* partir_blocos(){
@@ -90,15 +93,28 @@ void libertar_nodes(trie_node* node, int n_filhos){
 }
 
 trie_node* inserir_na_trie(trie_node* root, char* padrao, int n_filhos){
-    //Como vamos inserir no dicionário, nós têmos de percorrer o dicionário da maneira mais eficiente, esta passa por simplesmete s
+    //Como vamos inserir no dicionário, nós têmos de percorrer o dicionário da maneira mais eficiente
+    //Basicamente ao percorrer têmos de tentar encontrar a raiz do mesmo
     trie_node* temp = root;
-    
+    for(int i = 0; padrao[i] != '/0'; i++){
+        int index_ascii = (int) padrao[i];
+    //for(int i = 0; i<n_filhos; i++){
+        //Procura pelo index do prefixo do padrao
+        //Procurar mais padrões conhecidos
+        if(temp -> filhos[index_ascii] == NULL){
+            temp -> filhos[index_ascii] = criar_node(padrao[i]);
+        }else{
 
-    for(int i = 0; i<n_filhos; i++){
-        
+        }
+        temp = temp -> filhos[index_ascii]; //Para procurar o padrão nós descemos de nível.
     }
+    temp -> e_leaf = 1;
+    return temp;
 }
 
+int procurar_na_trie(trie_node* root, char* padrao){
+
+}
 
 
 int main(int argc, char *argv[]) {
