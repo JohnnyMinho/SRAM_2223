@@ -26,12 +26,13 @@
 //Estruta de dados usado, trie.
 
 typedef struct trie_node trie_node;
-
+int indice = 0;
 
 struct trie_node {
     int e_leaf;
-    char *dados;
+    char* dados;
     int indice;
+    int output;
     trie_node* filhos[num_filhos];
 };
 
@@ -98,31 +99,49 @@ void libertar_nodes(trie_node* node, int n_filhos){
     free(node);
 }
 
-trie_node* inserir_na_trie(trie_node* root, char* padrao, int n_filhos){
+void inserir_na_trie(trie_node* root, char* bloco, int n_filhos){
     //Como vamos inserir no dicionário, nós têmos de percorrer o dicionário da maneira mais eficiente
     //Basicamente ao percorrer têmos de tentar encontrar a raiz do mesmo
     //Podemos guardar o prefixo atual e no fim fazemos uma procura a partir da posição atual no bloco de texto até deixarmos de encontrar prefixos válidos ex:
-    //AABBAB -> Este ao fim de 5 iterações pode usar AB como um prefixo
+    //AABBAB -> Este ao fim de 4 iterações pode usar AB como um prefixo
     trie_node* temp = root;
-    
-    for(int i = 0; padrao[i] != NULL; i++){
-        int index_ascii = (int) padrao[i];
+    char Pb;
+    char Pa;
+    for(int i = 0; bloco[i] != NULL; i++){
+        Pa = bloco[i];
+        Pb = bloco[i+1];
+        int index_ascii = (int) bloco[i];
     //for(int i = 0; i<n_filhos; i++){
         //Procura pelo index do prefixo do padrao
         //Procurar mais padrões conhecidos
         if(temp -> filhos[index_ascii] == NULL){
-            temp -> filhos[index_ascii] = criar_node(padrao[i]);
+            temp -> filhos[index_ascii] = criar_node(bloco[i]);
         }else{
-
+            
         }
+        temp = root; //Quando passamos para um Pa novo têmos de voltar para o topo da trie.
         temp = temp -> filhos[index_ascii]; //Para procurar o padrão nós descemos de nível.
     }
     temp -> e_leaf = 1;
-    return temp;
+    //free(Pb);
+    //free(Pa);
 }
 
 int procurar_na_trie(trie_node* root, char* padrao){
-
+    trie_node* temp = root;
+    char* palavra_total;
+    for(int x = 0; x < num_filhos; x++){
+        for(int i = 0; padrao[i] != NULL; i++){
+            if(sizeof(padrao) == 1){
+                return x; //Caso o padrão a procurar apenas tenha um caracter sabemos que faz parte dos chars de 1 nível a partir da raiz, logo o indíce corresponde também ao valor de x.
+            }
+            if(root -> filhos[x] -> dados[i] == padrao[i]){
+                temp = temp -> filhos[x];
+                x = 0;
+                //Padrão + 1 posição do padrão existe,sendo esta sempre concactenada a um char já existente, e enquanto isto for possível, ou enquanto não chegarmos ao fim do padrão, continuamos a ver esta condição
+            }
+        }
+    }
 }
 
 
