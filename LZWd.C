@@ -30,7 +30,7 @@ int indice_global = 0;
 
 struct trie_node {
     int e_leaf;
-    char* dados;
+    char* dados = (char*)malloc(256*sizeof(char));
     int indice;
     int output;
     trie_node* filhos[num_filhos];
@@ -38,6 +38,7 @@ struct trie_node {
 
 trie_node* criar_node(char* data,int output_a_colocar){
     trie_node* novo_node = (trie_node*) calloc (1, sizeof(trie_node));
+    novo_node -> dados = (char*)malloc((strlen(data) + 1) * sizeof(char));
     novo_node -> dados = data;
     novo_node -> output = output_a_colocar;
     //novo_node->filhos = (trie_node**) malloc(n_filhos * sizeof(trie_node*));
@@ -111,17 +112,25 @@ int encontrar_pos_livre(trie_node* node){
 }
 
 int procurar_na_trie(trie_node* root, char* padrao){ //Devolve o indice do padrão que queremos do dicionário
-    printf("Entrei");
+    printf("Entrei\n");
     trie_node* temp = root;
     char* palavra_total;
     int padrao_encontrado = 0; //Serve como uma boolean
     int num_filho_com_padrao = 0;
-    printf("DEBUGProcura0");
+    printf("DEBUGProcura0\n");
     for(int x = 0; x < num_filhos; x++){
+        printf("%d\n",sizeof(root->filhos[x]));
+        temp = root->filhos[x];
+        char* dados = temp->dados;
+        printf("%s\n", dados);
         for(int i = 0; padrao[i] != NULL; i++){
-            if(root -> filhos[x] -> dados == padrao){ // && strcmp(root -> filhos[x] -> dados, padrao)
+            printf("Entrei1Ciclo\n");
+            printf("%s\n", temp->dados);
+            printf("Debug");
+            if(temp->dados == padrao){ // && strcmp(root -> filhos[x] -> dados, padrao)
+                printf("EntreinoIf\n");
                 if(sizeof(padrao) == 1){
-                    printf("DEBUGProcura1");
+                    printf("DEBUGProcura1\n");
                     return x; //Caso o padrão a procurar apenas tenha um caracter sabemos que faz parte dos chars de 1 nível a partir da raiz, logo o indíce corresponde também ao valor de x.
                 }
                 padrao_encontrado = 1;
@@ -130,14 +139,16 @@ int procurar_na_trie(trie_node* root, char* padrao){ //Devolve o indice do padr�
                 //x = 0;
                 //Padrão + 1 posição do padrão existe,sendo esta sempre concactenada a um char já existente, e enquanto isto for possível, ou enquanto não chegarmos ao fim do padrão, continuamos a ver esta condição
             }else{
+                printf("EncontreiNada\n");
                 padrao_encontrado = 0;
-                x=0;
             }
         }
     }
     if(padrao_encontrado == 1){
+        printf("DevolviOIndice\n");
         return (root -> filhos[num_filho_com_padrao] -> indice);
     }else{
+        printf("Dicionário Cheio ou não encontrei o padrão pedido");
         return -1;
     }
 }
@@ -173,16 +184,16 @@ void inserir_na_trie(trie_node* root, char* bloco, int n_filhos){
         memcpy(Pb, (bloco+a), 1); // -> Segmentation fault
         printf("%s\n",Pb);
         do{
-            printf("DEBUG00");
+            printf("DEBUG00\n");
             if(pos_avancar!=0){
-                printf("DEBUG11");
+                printf("DEBUG11\n");
                 Pa = (char*)realloc(Pa, pos_avancar+1*sizeof(char));
                 Pa[pos_avancar+1]='\0';
                 memcpy(Pa+pos_avancar,bloco+i,i+pos_avancar);
                 temp = temp -> filhos[filho_pa_encontrado]; //Para procurar o padrão nós descemos de nível.
                 outputs_novo = temp -> indice;
             }else{
-                printf("DEBUG22");
+                printf("DEBUG22\n");
                 outputs_novo = index_ascii;
             }
             printf("Debug1_Inserir_procuraPa\n");
@@ -223,13 +234,15 @@ void inserir_na_trie(trie_node* root, char* bloco, int n_filhos){
     free(Pa);
 }
 
-void criar_dicionario(trie_node* root){ //Funciona como esperado
+trie_node* criar_dicionario(trie_node* root){ //Funciona como esperado
     for(int i = 0; i < 256; i++){
-        char caracter[] = {i};
+        char caracter[] = {i,'\0'};
         //printf("%s\n",caracter);
-        criar_node(caracter,0);
+        root->filhos[i] = criar_node(caracter,0);
+        //printf("%s\n", root->filhos[i]->dados);
         indice_global++;
     }
+    return root;
 }
 
 int main(int argc, char *argv[]) {
@@ -276,7 +289,9 @@ int main(int argc, char *argv[]) {
     print_time();
     printf("Nome do ficheiro de entrada, %s \n",argv[1]);
     printf("Nome do ficheiro de saída, %s \n",argv[2]);
-    criar_dicionario(raiz);
+    raiz = criar_dicionario(raiz);
+    printf("Debug\n");
+    printf("%s\n",raiz->filhos[66]->dados);
     //Fim impressões iniciais
     //Têmos de ter uma maneira de introduzir um dicionário
     while(!feof(file)){
