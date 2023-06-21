@@ -26,7 +26,7 @@
 //Estruta de dados usado, trie.
 
 typedef struct trie_node trie_node;
-int indice = 0;
+int indice_global = 0;
 
 struct trie_node {
     int e_leaf;
@@ -36,8 +36,10 @@ struct trie_node {
     trie_node* filhos[num_filhos];
 };
 
-trie_node* criar_node(char data){
+trie_node* criar_node(char* data,int output_a_colocar){
     trie_node* novo_node = (trie_node*) calloc (1, sizeof(trie_node));
+    novo_node -> dados = data;
+    novo_node -> output = output_a_colocar;
     //novo_node->filhos = (trie_node**) malloc(n_filhos * sizeof(trie_node*));
     for (int i=0; i<num_filhos; i++){
         novo_node->filhos[i] = NULL;
@@ -99,55 +101,128 @@ void libertar_nodes(trie_node* node, int n_filhos){
     free(node);
 }
 
+int encontrar_pos_livre(trie_node* node){
+    for(int i; i<num_filhos;i++){
+        if(node -> filhos[i] == NULL){
+            return i;
+        }
+    }
+    return -1;
+}
+
+int procurar_na_trie(trie_node* root, char* padrao){ //Devolve o indice do padrão que queremos do dicionário
+    trie_node* temp = root;
+    char* palavra_total;
+    int padrao_encontrado = 0; //Serve como uma boolean
+    int num_filho_com_padrao = 0;
+    for(int x = 0; x < num_filhos; x++){
+        for(int i = 0; padrao[i] != NULL; i++){
+            if(root -> filhos[x] -> dados == padrao){ // && strcmp(root -> filhos[x] -> dados, padrao)
+                if(sizeof(padrao) == 1){
+                    return x; //Caso o padrão a procurar apenas tenha um caracter sabemos que faz parte dos chars de 1 nível a partir da raiz, logo o indíce corresponde também ao valor de x.
+                }
+                padrao_encontrado = 1;
+                num_filho_com_padrao;
+                //temp = temp -> filhos[x];
+                //x = 0;
+                //Padrão + 1 posição do padrão existe,sendo esta sempre concactenada a um char já existente, e enquanto isto for possível, ou enquanto não chegarmos ao fim do padrão, continuamos a ver esta condição
+            }else{
+                padrao_encontrado = 0;
+                x=0;
+            }
+        }
+    }
+    if(padrao_encontrado == 1){
+        return (root -> filhos[num_filho_com_padrao] -> indice);
+    }else{
+        return -1;
+    }
+}
+
 void inserir_na_trie(trie_node* root, char* bloco, int n_filhos){
     //Como vamos inserir no dicionário, nós têmos de percorrer o dicionário da maneira mais eficiente
     //Basicamente ao percorrer têmos de tentar encontrar a raiz do mesmo
     //Podemos guardar o prefixo atual e no fim fazemos uma procura a partir da posição atual no bloco de texto até deixarmos de encontrar prefixos válidos ex:
     //AABBAB -> Este ao fim de 4 iterações pode usar AB como um prefixo
     trie_node* temp = root;
-    char Pb;
-    char Pa;
-    for(int i = 0; bloco[i] != NULL; i++){
-        Pa = bloco[i];
-        Pb = bloco[i+1];
+    trie_node* temp_Pb = root; //Precisamos de um extra para ser usado para a procura do Pb
+    char* Pb = (char*)malloc(1*sizeof(char));
+    char* Pa = (char*)malloc(1*sizeof(char));
+    int i = 0;
+    int filho_pa_encontrado = 0;
+    int filho_pb_encontrado = 0;
+    int pos_valida = 0;
+    int outputs_novo = 0;
+    int pos_avancar = 0;
+    for(i = 0; bloco[i] != NULL; i++){
+        printf("Debug1_Inserir\n");
         int index_ascii = (int) bloco[i];
+        memcpy(Pa, bloco+i,1);
+        //printf("DEBUG0");
+        printf("%c\n",Pa[0]);
+        int a = i+1;
+        //printf("DEBUG1");
+        printf("%c",bloco[a]);
+        //printf("DEBUG2");
+        //Pb[i] = bloco[a];
+        memcpy(Pb, (bloco+a), 1); // -> Segmentation fault
+        printf("%s\n",Pb);
+        do{
+            if(pos_avancar!=0){
+
+                memcpy(Pa+pos_avancar,bloco+i,i+pos_avancar);
+                temp = temp -> filhos[filho_pa_encontrado]; //Para procurar o padrão nós descemos de nível.
+                outputs_novo = temp -> indice;
+            }else{
+                outputs_novo = index_ascii;
+            }
+            printf("Debug1_Inserir_procuraPa\n");
+            pos_avancar++;
+        }while(filho_pa_encontrado = procurar_na_trie(temp,Pa) != -1);
+        pos_avancar = 0;
+        do{
+            if(pos_avancar!=0){
+                memcpy(Pb+pos_avancar,bloco+a,a+pos_avancar);
+                temp_Pb = temp_Pb -> filhos[filho_pb_encontrado]; //Para procurar o padrão nós descemos de nível.
+            }
+            printf("Debug1_Inserir_procuraPb\n");
+            pos_avancar++;
+        }while(filho_pb_encontrado = procurar_na_trie(temp,Pb) != -1);
+        
+        if(pos_valida = encontrar_pos_livre(temp) != -1){
+            indice_global++;
+            temp -> filhos[filho_pa_encontrado] = criar_node(Pb,outputs_novo);
+        }
     //for(int i = 0; i<n_filhos; i++){
         //Procura pelo index do prefixo do padrao
         //Procurar mais padrões conhecidos
+        /*
         if(temp -> filhos[index_ascii] == NULL){
             temp -> filhos[index_ascii] = criar_node(bloco[i]);
         }else{
             
-        }
+        }*/
         temp = root; //Quando passamos para um Pa novo têmos de voltar para o topo da trie.
-        temp = temp -> filhos[index_ascii]; //Para procurar o padrão nós descemos de nível.
+        //temp = temp -> filhos[index_ascii]; //Para procurar o padrão nós descemos de nível.
     }
     temp -> e_leaf = 1;
-    //free(Pb);
-    //free(Pa);
+    free(Pb);
+    free(Pa);
 }
 
-int procurar_na_trie(trie_node* root, char* padrao){
-    trie_node* temp = root;
-    char* palavra_total;
-    for(int x = 0; x < num_filhos; x++){
-        for(int i = 0; padrao[i] != NULL; i++){
-            if(sizeof(padrao) == 1){
-                return x; //Caso o padrão a procurar apenas tenha um caracter sabemos que faz parte dos chars de 1 nível a partir da raiz, logo o indíce corresponde também ao valor de x.
-            }
-            if(root -> filhos[x] -> dados[i] == padrao[i]){
-                temp = temp -> filhos[x];
-                x = 0;
-                //Padrão + 1 posição do padrão existe,sendo esta sempre concactenada a um char já existente, e enquanto isto for possível, ou enquanto não chegarmos ao fim do padrão, continuamos a ver esta condição
-            }
-        }
+void criar_dicionario(trie_node* root){ //Funciona como esperado
+    for(int i = 0; i < 256; i++){
+        char caracter[] = {i};
+        //printf("%s\n",caracter);
+        criar_node(caracter,0);
+        indice_global++;
     }
 }
-
 
 int main(int argc, char *argv[]) {
     int dicionario_base = 1; //Dicionário é o báscio (Tabela ASCII), se não for ativada a opção de um dicionário custom | 0 -> Dicionário Custom | 1 -> Dicionário Base 
-    trie_node* raiz = criar_node('\0');
+    char content_raiz[] = {'\0'};
+    trie_node* raiz = criar_node(content_raiz,0);
     int fd;
     int dicionario_default = 0;
     int position_in_file = 0;
@@ -174,7 +249,7 @@ int main(int argc, char *argv[]) {
         block_size = basic_block_size;
     }
 
-    
+    indice_global = 1;
     FILE* file = fopen(argv[1], "r");
     if(fd == -1){
         printf("O caminho até ao ficheiro está errado ou o ficheiro não existe");
@@ -188,7 +263,7 @@ int main(int argc, char *argv[]) {
     print_time();
     printf("Nome do ficheiro de entrada, %s \n",argv[1]);
     printf("Nome do ficheiro de saída, %s \n",argv[2]);
-    
+    criar_dicionario(raiz);
     //Fim impressões iniciais
     //Têmos de ter uma maneira de introduzir um dicionário
     while(!feof(file)){
@@ -196,6 +271,8 @@ int main(int argc, char *argv[]) {
         fseek(file,position_in_file,SEEK_SET);
         position_in_file += block_size;
         fread(text_block,sizeof(char), block_size,file);
+        printf("%s", text_block);
+        printf("\n");
         inserir_na_trie(raiz,text_block,256);
     }
   
