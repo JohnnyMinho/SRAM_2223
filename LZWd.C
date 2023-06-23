@@ -104,7 +104,7 @@ void libertar_nodes(trie_node* node, int n_filhos){
 }
 
 int encontrar_pos_livre(trie_node* node, char* padrao){
-    printf("À procura de posições\n");
+    //printf("À procura de posições\n");
     for(int i = 0; i<num_filhos;i++){
        /*if(strcmp(node->filhos[i]->dados,padrao) == 0){
             printf("Este padrão %s já existe\n",padrao);
@@ -112,7 +112,7 @@ int encontrar_pos_livre(trie_node* node, char* padrao){
         }*/
         //printf("Posição atual: %d",i);
         if(node->filhos[i] == NULL){
-            printf("Encontrei uma posição livre: %d\n",i);
+            //printf("Encontrei uma posição livre: %d\n",i);
             return i;
         }
     }
@@ -122,7 +122,7 @@ int encontrar_pos_livre(trie_node* node, char* padrao){
 int procurar_na_trie(trie_node* root, char* padrao){ //Devolve o indice do padrão que queremos do dicionário
     //printf("Entrei\n");
     sleep(3);
-    printf("%s\n",padrao);
+    //printf("%s\n",padrao);
     trie_node* temp = root;
     char* palavra_total;
     int padrao_encontrado = 0; //Serve como uma boolean
@@ -144,10 +144,10 @@ int procurar_na_trie(trie_node* root, char* padrao){ //Devolve o indice do padr�
                 //printf("%ld\n",  strlen(padrao));
                 //printf("Debug\n");
                 if(temp != NULL && strcmp(temp->dados,padrao)==0){ // && strcmp(root -> filhos[x] -> dados, padrao)
-                    //printf("Debug3Procura\n");
-                    printf("Encontrei um padrao igual\n");
+                    printf("Debug3Procura\n");
+                    //printf("Encontrei um padrao igual\n");
                     if(strlen(padrao) == 1){
-                        printf("So1Char\n");
+                        //printf("So1Char\n");
                         //printf("%d\n",x);
                         return x; //Caso o padrão a procurar apenas tenha um caracter sabemos que faz parte dos chars de 1 nível a partir da raiz, logo o indíce corresponde também ao valor de x.
                     }
@@ -164,10 +164,10 @@ int procurar_na_trie(trie_node* root, char* padrao){ //Devolve o indice do padr�
         }
     }
     if(padrao_encontrado == 1){
-        printf("DevolviOIndice\n");
+        //printf("DevolviOIndice\n");
         return (root -> filhos[num_filho_com_padrao] -> indice);
     }else{
-        printf("Dicionário Cheio ou não encontrei o padrão pedido\n");
+        //printf("Dicionário Cheio ou não encontrei o padrão pedido\n");
         return -1;
     }
 }
@@ -200,22 +200,24 @@ void inserir_na_trie(trie_node* root, char* bloco, int n_filhos){
         Pa[1] = '\0';
         Pb[1] = '\0';
         pattern_to_dictionary[2]='\0';
-        printf("Debug1_Inserir\n");
+        //printf("Debug1_Inserir\n");
         int index_ascii = (int) bloco[i];
-        //memcpy(Pa, bloco+i,1);
-        printf("%s\n",Pa);
+        memcpy(Pa, bloco+i,1);
+        //printf("%s\n",Pa);
         int a = i+1;
-        //memcpy(Pb, (bloco+a), 1);
+        memcpy(Pb, (bloco+a), 1);
+        //printf("%s\n",Pb);
         pattern_to_dictionary[0] = Pa[0];
         pattern_to_dictionary[1] = Pb[0];
-        printf("%s\n",Pb);
+        
         do{
+            printf("Pa atual: %s\n", Pa);
             if(primeira_it = 1){
                 pattern_to_dictionary[0] = Pa[0];
                 primeira_it = 0;
             }
             outputs_anterior = outputs_novo;
-            printf("DEBUGPa\n");
+            //printf("DEBUGPa\n");
             if(pos_avancar!=0){
                 //printf("DEBUG11\n");
                 Pa = (char*)realloc(Pa, pos_avancar+1*sizeof(char));
@@ -245,26 +247,31 @@ void inserir_na_trie(trie_node* root, char* bloco, int n_filhos){
         }
         pos_avancar = 0;
         do{
-            printf("DEBUGPb\n");
+            printf("Pb Atual: %s\n",Pb);
+            //printf("DEBUGPb\n");
             if(pos_avancar!=0){
-                printf("Proxima posição no padrão (PB):");
+                //printf("Proxima posição no padrão (PB):");
                 Pb = (char*)realloc(Pb, pos_avancar+1*sizeof(char));
                 Pb[pos_avancar+1]='\0';
+                /*
                 pattern_to_dictionary = (char*)realloc(pattern_to_dictionary, pos_avancar+1*sizeof(char));
-                pattern_to_dictionary[strlen(pattern_to_dictionary)+1+pos_avancar];
+                pattern_to_dictionary[strlen(pattern_to_dictionary)+1+pos_avancar];*/
                 if(i == 0){
                     memcpy(Pb,bloco+i+1,1+pos_avancar);
                 }else{
                     memcpy(Pb,bloco+i+1,i+pos_avancar);
                 }
-                printf("%s\n",Pb); //-> Imprime o padrão do Pb
-                strncpy(pattern_to_dictionary+(strlen(Pb)),Pb,(strlen(Pb)-1));
+                //printf("%s\n",Pb); //-> Imprime o padrão do Pb
+                //strncpy(pattern_to_dictionary+(strlen(Pb)),Pb,(strlen(Pb)-1));
                 //printf("DEBUGPbAposcopia\n");
                 temp_Pb = temp_Pb -> filhos[filho_pb_encontrado]; //Para procurar o padrão nós descemos de nível.
             }
             filho_pb_encontrado = procurar_na_trie(temp_Pb,Pb);
-            printf("DebugPbAposVerificarDic\n");
+            //printf("DebugPbAposVerificarDic\n");
             if((pos_valida = encontrar_pos_livre(temp,pattern_to_dictionary)) != -1 && filho_pb_encontrado != -1){
+                pattern_to_dictionary = (char*)realloc(pattern_to_dictionary, strlen(Pb));
+                pattern_to_dictionary[strlen(pattern_to_dictionary)+strlen(Pb)] = '\0';
+                strncpy(pattern_to_dictionary+(strlen(Pb)),Pb,(strlen(Pb)-1));
                 indice_global++;
                 printf("Padrao para o dic: %s\n",pattern_to_dictionary);
                 temp -> filhos[pos_valida] = criar_node(pattern_to_dictionary,outputs_novo);
@@ -272,7 +279,7 @@ void inserir_na_trie(trie_node* root, char* bloco, int n_filhos){
             //printf("Debug1_Inserir_procuraPb\n");
             pos_avancar++;
         }while(filho_pb_encontrado != -1);
-        printf("Sai da inspection\n");
+        //printf("Sai da inspection\n");
        /* if((pos_valida = encontrar_pos_livre(temp)) != -1){
             indice_global++;
             printf("Padrao para o dic: %s\n",pattern_to_dictionary);
