@@ -36,6 +36,16 @@ struct trie_node {
     trie_node* filhos[num_filhos];
 };
 
+int getsize_of_array(char* array_to_check){
+    int i = 0;
+    //printf("%s\n",array_to_check);
+    while(array_to_check[i]!=NULL){
+        i++;
+    }
+    i++;
+    return i;
+}
+
 trie_node* criar_node(char* data,int output_a_colocar){
     trie_node* novo_node = (trie_node*)calloc(1, sizeof(trie_node));
     novo_node -> dados = (char*)malloc((strlen(data) + 1) * sizeof(char));
@@ -106,7 +116,7 @@ void libertar_nodes(trie_node* node, int n_filhos){
 int encontrar_pos_livre(trie_node* node, char* padrao){
     //printf("À procura de posições\n");
     for(int i = 0; i<num_filhos;i++){
-       /*if(strcmp(node->filhos[i]->dados,padrao) == 0){
+       /*if(memcmp(node->filhos[i]->dados,padrao) == 0){
             printf("Este padrão %s já existe\n",padrao);
             return -1;
         }*/
@@ -120,14 +130,13 @@ int encontrar_pos_livre(trie_node* node, char* padrao){
 }
 
 int procurar_na_trie(trie_node* root, char* padrao){ //Devolve o indice do padrão que queremos do dicionário
-    //printf("Entrei\n");
-    sleep(3);
+    printf("Entrei\n");
+    //sleep(1);
     //printf("%s\n",padrao);
     trie_node* temp = root;
     char* palavra_total;
     int padrao_encontrado = 0; //Serve como uma boolean
     int num_filho_com_padrao = 0;
-    //printf("DEBUGProcura0\n");
     if(temp->filhos[0] != NULL){ //Fazemos isto para visto que todos os pontos que têm o primeiro filho a NULL não possuem qualquer filho.
     for(int x = 0; x < num_filhos; x++){
         //printf("%d\n",sizeof(root->filhos[x]));
@@ -142,8 +151,8 @@ int procurar_na_trie(trie_node* root, char* padrao){ //Devolve o indice do padr�
                 //printf("%s\n", temp->dados);
                 //printf("%ld\n",  strlen(padrao));
                 //printf("Debug\n");
-                if(temp != NULL && strcmp(temp->dados,padrao)==0){ // && strcmp(root -> filhos[x] -> dados, padrao)
-                    printf("Debug3Procura\n");
+                if(temp != NULL && memcmp(temp->dados,padrao,getsize_of_array(padrao))==0){ // && memcmp(root -> filhos[x] -> dados, padrao)
+                    //printf("Debug3Procura\n");
                     //printf("%s\n",temp->dados);
                     if(strlen(padrao) == 1){
                         //printf("So1Char\n");
@@ -152,7 +161,7 @@ int procurar_na_trie(trie_node* root, char* padrao){ //Devolve o indice do padr�
                     }
                     padrao_encontrado = 1;
                     num_filho_com_padrao = x;
-                    printf("Numero de indice devolvio: %d\n",num_filho_com_padrao);
+                    //printf("Numero de indice devolvio: %d\n",num_filho_com_padrao);
                     return x;
                     //temp = temp -> filhos[x];
                     //x = 0;
@@ -171,6 +180,79 @@ int procurar_na_trie(trie_node* root, char* padrao){ //Devolve o indice do padr�
         return -1;
     }
 }
+
+trie_node* procurar_na_trie_total(trie_node* root, char* padrao){
+    printf("NovaFunc1\n");
+    trie_node* temp = root;
+    trie_node* raiz = root;
+    int resultado_procura;
+    int position_tree = 0;
+    int encontrou_nada = 0;
+    int x = 0;
+    if(root->filhos[0] != NULL){
+        printf("%s\n",root->dados);
+        for(int i = 0; i < num_filhos; i++){
+            if(raiz->filhos[i] != NULL){
+                printf("NovaFunc2\n");
+                printf("%s\n",temp->dados);
+                printf("%s\n",padrao);
+                printf("%d\n",getsize_of_array(temp->dados));
+                temp = raiz->filhos[x];
+                if(memcmp(temp->dados,padrao,getsize_of_array(padrao))==0){
+                    printf("NovaFunc3\n");
+                    return temp;
+                }else{
+                    return NULL;
+                }
+                procurar_na_trie_total(temp,padrao);
+                }
+            }
+            /*
+                while(position_tree == 0 || encontrou_nada == 1){
+                    if(raiz->filhos[x] != NULL){
+                        raiz = root -> filhos[x];
+                        resultado_procura = procurar_na_trie(raiz,padrao);
+                        if(resultado_procura!=-1){
+                            position_tree = 0;
+                        }else{
+                            procurar_na_trie_total(raiz,padrao);
+                        }
+                        if(x == 255){
+                            encontrou_nada = 1;
+                        }
+                    }
+                    x++;
+                }*/
+        /*
+            if(raiz->dados[0] == padrao[0]){
+                while(memcmp(temp->dados,padrao,getsize_of_array(padrao))!=0 || x == 255){
+                    if(temp -> filhos[x] != NULL){
+                        temp = raiz -> filhos[x];
+                    }
+                    x++;
+              /* if(memcmp(temp->dados,padrao,getsize_of_array(padrao))==0){
+                    return temp;
+                }else{
+                    if(i = 255){
+                        i = 0;
+                    }
+                }
+                
+                }
+            }
+            if(position_tree == 1){
+                return raiz;
+            }else{
+                return NULL;
+            }*/
+    }else{
+        printf("NovaFunc4\n");    
+        printf("%s\n",root->dados);
+        //Não existe qualquer filho dentro da posição da trie em que estamos, logo não vale a pena procurar, isto logicamente implica que não foi encontrado o padrão procurado.
+        return NULL;
+    }
+}   
+
 
 void inserir_na_trie(trie_node* root, char* bloco, int n_filhos){
     //Como vamos inserir no dicionário, nós têmos de percorrer o dicionário da maneira mais eficiente
@@ -193,6 +275,8 @@ void inserir_na_trie(trie_node* root, char* bloco, int n_filhos){
     int primeira_it = 1;
     int outputs_anterior = 0;
     int pos_avancar = 1;
+    int pos_avancar_pa =1;
+    int preciso_encontrar_temp_Pb = 0;
     for(i = 0; bloco[i] != NULL; i++){
         char* Pb = (char*)malloc(2*sizeof(char));
         char* Pa = (char*)malloc(2*sizeof(char));
@@ -207,8 +291,6 @@ void inserir_na_trie(trie_node* root, char* bloco, int n_filhos){
         int a = i+1;
         memcpy(Pb, (bloco+a), 1);
         //printf("%s\n",Pb);
-        pattern_to_dictionary[0] = Pa[0];
-        pattern_to_dictionary[1] = Pb[0];
         printf("Posição no bloco : %d\n",i);
         do{
             if(primeira_it = 1){
@@ -222,10 +304,11 @@ void inserir_na_trie(trie_node* root, char* bloco, int n_filhos){
                 //printf("DEBUG11\n");
                 Pa = (char*)realloc(Pa, pos_avancar*sizeof(char));
                 Pa[pos_avancar]='\0';
-                pattern_to_dictionary = (char*)realloc(pattern_to_dictionary, pos_avancar+1*sizeof(char));
+               /* pattern_to_dictionary = (char*)realloc(pattern_to_dictionary, pos_avancar+1*sizeof(char));
                 pattern_to_dictionary[strlen(pattern_to_dictionary)+1+pos_avancar];
                 memcpy(Pa,bloco+i,pos_avancar);
-                strncpy(pattern_to_dictionary,Pa,(strlen(Pa)-1));
+                memcpy(pattern_to_dictionary,Pa,(strlen(Pa)-1));*/
+                memcpy(Pa,bloco+i,pos_avancar);
                 temp = temp->filhos[filho_pa_encontrado]; //Para procurar o padrão nós descemos de nível.
                 /*printf("Valor filho_pa_encontrado: %d\n",filho_pa_encontrado);
                 printf("Valor indice: %d\n", temp->indice); 
@@ -236,13 +319,27 @@ void inserir_na_trie(trie_node* root, char* bloco, int n_filhos){
                 outputs_novo = index_ascii;
             }
             printf("Pa atual: %s\n", Pa);
+            filho_pa_encontrado = procurar_na_trie(temp,Pa);    
+            //printf("Padrão atual: %s\n",pattern_to_dictionary);
+            //printf("Filho pb encontrado: %d\n",filho_pb_encontrado);
+            //printf("DebugPbAposVerificarDic\n");
+            if(filho_pa_encontrado != -1){
+                pattern_to_dictionary = (char*)realloc(pattern_to_dictionary, pos_avancar*sizeof(char));
+                pattern_to_dictionary[pos_avancar];
+                memcpy(pattern_to_dictionary,Pa,(strlen(Pa)));
+                pos_avancar_pa = getsize_of_array(Pa)-1;
+                printf("SAI DO Pa com este padrão: %s\n",pattern_to_dictionary);
+            }
             //printf("Debug1_Inserir_procuraPa\n");
             pos_avancar++;
-        }while((filho_pa_encontrado = procurar_na_trie(temp,Pa)) != -1);
-        if(filho_pa_encontrado = -1){
-            outputs_novo = outputs_anterior;
+        }while(filho_pa_encontrado !=-1);
+        if(pos_avancar_pa >= 2){
+            preciso_encontrar_temp_Pb = 1;
+            //printf("Pa maior ou igual a 2");
+            pos_avancar = pos_avancar_pa;
+        }else{
+            pos_avancar = 1;
         }
-        pos_avancar = 1;
         do{
             //printf("DEBUGPb\n");
             if(pos_avancar!=1){
@@ -253,20 +350,28 @@ void inserir_na_trie(trie_node* root, char* bloco, int n_filhos){
                 /*
                 pattern_to_dictionary = (char*)realloc(pattern_to_dictionary, pos_avancar+1*sizeof(char));
                 pattern_to_dictionary[strlen(pattern_to_dictionary)+1+pos_avancar];*/
-                memcpy(Pb,bloco+i+1,pos_avancar);
+                memcpy(Pb,bloco+i+pos_avancar-1,pos_avancar);
                 //printf("%s\n",Pb); //-> Imprime o padrão do Pb
                 //strncpy(pattern_to_dictionary+(strlen(Pb)),Pb,(strlen(Pb)-1));
                 //printf("DEBUGPbAposcopia\n");
-                temp_Pb = temp_Pb -> filhos[filho_pb_encontrado]; //Para procurar o padrão nós descemos de nível.
+                if(preciso_encontrar_temp_Pb == 0){
+                    temp_Pb = temp_Pb -> filhos[filho_pb_encontrado]; //Para procurar o padrão nós descemos de nível.
+                }else{
+                    preciso_encontrar_temp_Pb = 0;
+                    temp_Pb = procurar_na_trie_total(temp_Pb,Pb);
+                }
+                //O erro está a acontecer porque ele está a bugar no temp que é enviado, logo há um erro quanto ao filho a ser revisto.
             }
             printf("Pb Atual: %s\n",Pb);
             filho_pb_encontrado = procurar_na_trie(temp_Pb,Pb);
-            printf("Filho pb encontrado: %d\n",filho_pb_encontrado);
+            //printf("Padrão atual: %s\n",pattern_to_dictionary);
+            //printf("Filho pb encontrado: %d\n",filho_pb_encontrado);
             //printf("DebugPbAposVerificarDic\n");
             if((pos_valida = encontrar_pos_livre(temp,pattern_to_dictionary)) != -1 && filho_pb_encontrado != -1){
-                pattern_to_dictionary = (char*)realloc(pattern_to_dictionary, strlen(Pb));
-                pattern_to_dictionary[strlen(pattern_to_dictionary)+strlen(Pb)] = '\0';
-                strncpy(pattern_to_dictionary+(strlen(Pb)),Pb,(strlen(Pb)-1));
+                pattern_to_dictionary = (char*)realloc(pattern_to_dictionary, (strlen(Pb)+strlen(Pa)));
+                pattern_to_dictionary[(strlen(Pb)+strlen(Pa))] = '\0';
+                printf("Tamanho Pa e Pb: %ld , %ld \n",strlen(Pa),strlen(Pb));
+                memcpy(pattern_to_dictionary+(strlen(Pa)-1),Pb,(strlen(Pb)));
                 indice_global++;
                 printf("Padrao para o dic: %s\n",pattern_to_dictionary);
                 temp -> filhos[pos_valida] = criar_node(pattern_to_dictionary,outputs_novo);
@@ -274,22 +379,18 @@ void inserir_na_trie(trie_node* root, char* bloco, int n_filhos){
             //printf("Debug1_Inserir_procuraPb\n");
             pos_avancar++;
         }while(filho_pb_encontrado != -1);
-        pos_avancar = 1;
-        //printf("Sai da inspection\n");
-       /* if((pos_valida = encontrar_pos_livre(temp)) != -1){
-            indice_global++;
-            printf("Padrao para o dic: %s\n",pattern_to_dictionary);
-            temp -> filhos[pos_valida] = criar_node(pattern_to_dictionary,outputs_novo);
-        }*/
-    //for(int i = 0; i<n_filhos; i++){
-        //Procura pelo index do prefixo do padrao
-        //Procurar mais padrões conhecidos
-        /*
-        if(temp -> filhos[index_ascii] == NULL){
-            temp -> filhos[index_ascii] = criar_node(bloco[i]);
+        int temp_size = getsize_of_array(Pa)-2; //Como o nosso programa lê sempre mais uma posição, têmos de tirar o encerramento do array + a ultima posição extra   
+      /* if(temp_size > 1){
+            printf("Entrei aqui, temp_size = %d\n",temp_size);
+            pos_avancar = temp_size; 
         }else{
-            
+            pos_avancar = 1;
         }*/
+        if(pos_avancar_pa > 2){
+            pos_avancar = pos_avancar_pa;
+        }else{
+            pos_avancar = 1;
+        }
         temp = root; //Quando passamos para um Pa novo têmos de voltar para o topo da trie.
         temp_Pb = root;
         //temp = temp -> filhos[index_ascii]; //Para procurar o padrão nós descemos de nível.
