@@ -84,12 +84,40 @@ void ControlCHandler(int sig_num){
     printf("MANUALLY INTERRUPTED\n");
 }
 
+int enconde_sample(int i, int N,int encoding_type){
+    int amostra_cod = 0;
+    if(encoding_type == 1){
+        //Sin wave
+        float sin_calculation_value = sin((2*VAL_PI*i)/N);
+        amostra_cod = (int)(1+(1+sin_calculation_value)*30);
+    }
+    if(encoding_type == 2){
+        //Square wave
+        int square_wave_value = 0;
+        float sin_calculation_value = sin((2*VAL_PI*i)/N);
+        if(sin_calculation_value > 0.0){
+            square_wave_value = 1;
+        }else{
+            square_wave_value = 0;
+        }
+        amostra_cod = (int)((square_wave_value)*30);
+    }
+    if(encoding_type == 3){
+        //Triangular wave
+        float sin_calculation_value = sin((2*VAL_PI*i)/N);
+        float triangular_wave_value = 2 * fabs(sin_calculation_value - floor(sin_calculation_value + 0.5)) - 1;
+        amostra_cod = (int)(1+(1+triangular_wave_value)*30);
+    }
+    return amostra_cod;
+}
+
 int main(int argc,char *argv[]){
 
     signal(SIGINT,ControlCHandler);
 
     int server_ip_size = 0;
     int server_port_size = 0;
+    int source_type = 0;
     if(argc>5){
         server_ip_size = strlen(argv[3]);
         server_port_size = strlen(argv[4]);
@@ -136,13 +164,14 @@ int main(int argc,char *argv[]){
         memcpy(Server_Port,argv[4],strlen(argv[4]));
         memcpy(PDU1.Periodo_Max,argv[5],strlen(argv[5]));
         Period_Max = strtol(argv[5],&Max_Period_ptr,10); //It is trusted that the user inputs a valid number
+        source_type = atoi(argv[6]);
     }else{
         perror("Number of arguments should be 6, frequency , number of samples, IP, Port, Maximum Period ");
         exit(EXIT_FAILURE);
     }
     
     N = atoi(PDU1.Num_Amostras);
-    sprintf(PDU1.Fonte_Tipo,"%d",1);
+    sprintf(PDU1.Fonte_Tipo,"%d",source_type);
     Freq_amostragem = round(atoi(PDU1.Frequencia) * N);
 
 
@@ -164,7 +193,6 @@ int main(int argc,char *argv[]){
     server_addr.sin_addr.s_addr = inet_addr(Server_IP);
     sleep(1);
     if (inet_pton(AF_INET, Server_IP, & (server_addr.sin_addr)) <= 0) {
-        //remove_ID(new_id,id_file,file_length);
         perror("The IP in use is not valid");
         exit(-1);
     }
@@ -175,15 +203,10 @@ int main(int argc,char *argv[]){
         memset(concat_PDU,0,70);
         sprintf(PDU1.Val_amostra, "%d", i);
         snprintf(PDU1.Periodo,10,"%d",Period);
-        //printf("i->%d,N->%d\n",i,N);
-        float sin_calculation_value = sin((2*VAL_PI*i)/N);
-        //printf("double->%f",sin_calculation_value);
-        int amostra_cod = (int)(1+(1+sin_calculation_value)*30);
-        //printf("amostra_cod -> %d\n",amostra_cod);
-        //printf("i->%d\n",i);
-        //sleep(1);
+        int amostra_cod = enconde_sample(i,N,source_type);
         sprintf(PDU1.Val_amostra_cod, "%d", amostra_cod);
-        //strcat(PDU);
+        strcat(concat_PDU,"1");
+        strcat(concat_PDU,"|");
         strcat(concat_PDU,PDU1.Fonte_Tipo);
         strcat(concat_PDU,"|");
         strcat(concat_PDU,PDU1.Identificador);
