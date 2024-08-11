@@ -41,7 +41,7 @@ void print_menu(char *ID){
     printf("3-> Unsubscribe from source\n");
     printf("4-> Show Data incoming from source\n");
     printf("5-> Get information about a source\n");
-    printf("0-> Exit Program\n");
+    printf("6-> Exit Program\n");
     printf("Choose an option: ");
 }
 
@@ -524,13 +524,17 @@ int main(int argc,char* argv[]){
                     }
                     memset(comm_buffer,'\0',100);
                     print_available_sources_from_server(udp_buffer);
-                    printf("Write the ID of the source to subscribe to:");
+                    printf("Write the ID of the source of which you want information about:");
                     if(fgets(input_buffer,sizeof(input_buffer),stdin)){
                         if(strchr(input_buffer, '\n') == NULL){ //Input is bigger than then allowed buffer size, we must eliminate the remaining characters in the stdin
                             while ((cleaner_helper = getchar()) != '\n' && cleaner_helper != EOF);
                         }
                     }
                     sprintf(comm_buffer,"6|%s|%s|",input_buffer,ID);
+                    if(testing_mode == 1){
+                        gettimeofday(&request_delay_test,NULL);
+                        delay = request_delay_test.tv_sec * 1000000 + request_delay_test.tv_usec;
+                    }
                     if (sendto(Info_UDP_Socket_fd, comm_buffer, strlen(comm_buffer), 0, (struct sockaddr * ) & server_addr, sizeof(server_addr)) < 0) {
                         perror("Data couldn't be sent to the server");
                         break;
@@ -545,46 +549,18 @@ int main(int argc,char* argv[]){
                         }
                         memset(udp_buffer,'\0',1024);
                         recvfrom(Info_UDP_Socket_fd,udp_buffer,sizeof(udp_buffer),MSG_WAITALL,(struct sockaddr *)&server_add_used , &server_addr_len);
+                    }
+                    if(testing_mode == 1){
+                        gettimeofday(&request_delay_test,NULL);
+                        delay = (request_delay_test.tv_sec * 1000000 + request_delay_test.tv_usec)-delay;
                     }
                     printout_source_info(udp_buffer);
                     getchar();
                     break;
                 case 6:
-                    sprintf(comm_buffer,"%s","2|");
-                    if (sendto(Request_UDP_Socket_fd, comm_buffer, strlen(comm_buffer), 0, (struct sockaddr * ) & server_addr, sizeof(server_addr)) < 0) {
-                        perror("Data couldn't be sent to the server");
-                        break;
-                    }
-                    while(udp_buffer[0] != '6'){
-                        memset(udp_buffer,'\0',1024);
-                        recvfrom(Request_UDP_Socket_fd,udp_buffer,sizeof(udp_buffer),MSG_WAITALL,(struct sockaddr *)&server_add_used , &server_addr_len);
-                    }
-                    memset(comm_buffer,'\0',100);
-                    print_available_sources_from_server(udp_buffer);
-                    printf("Write the ID of the source to subscribe to:");
-                    if(fgets(input_buffer,sizeof(input_buffer),stdin)){
-                        if(strchr(input_buffer, '\n') == NULL){ //Input is bigger than then allowed buffer size, we must eliminate the remaining characters in the stdin
-                            while ((cleaner_helper = getchar()) != '\n' && cleaner_helper != EOF);
-                        }
-                    }
-                    sprintf(comm_buffer,"6|%s|%s|",input_buffer,ID);
-                    if (sendto(Info_UDP_Socket_fd, comm_buffer, strlen(comm_buffer), 0, (struct sockaddr * ) & server_addr, sizeof(server_addr)) < 0) {
-                        perror("Data couldn't be sent to the server");
-                        break;
-                    }
-                    memset(udp_buffer,'\0',1024);
-                    while(udp_buffer[0] != '1'){ //We reuse cases in terms of answers for simplicity sake
-                        if(strncmp(udp_buffer,"13",2) == 0){
-                            printf("The SM wasn't able to fulfill the source request\n");
-                            error_message_splitter(udp_buffer);
-                            sleep(2);
-                            break;
-                        }
-                        memset(udp_buffer,'\0',1024);
-                        recvfrom(Info_UDP_Socket_fd,udp_buffer,sizeof(udp_buffer),MSG_WAITALL,(struct sockaddr *)&server_add_used , &server_addr_len);
-                    }
-                    printout_source_info(udp_buffer);
-                    getchar();
+                    printf("Exiting program\n");
+                    sleep(1);
+                    exit(0);
                     break;
                 default:
                     printf("No valid option selected\n");
